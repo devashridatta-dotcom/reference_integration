@@ -37,6 +37,11 @@ def synthetic_reviewed_assertion() -> dict:
     return json.loads((SRAC_ROOT / "examples" / "synthetic-safety-related.srac.json").read_text(encoding="utf-8"))
 
 
+@pytest.fixture
+def lifecycle_health_monitor_assertion() -> dict:
+    return json.loads((SRAC_ROOT / "examples" / "lifecycle-health-monitor.srac.json").read_text(encoding="utf-8"))
+
+
 def test_example_satisfies_core_profile(assertion: dict) -> None:
     assert validate_assertion(assertion) == []
 
@@ -382,6 +387,81 @@ def test_known_good_hash_mismatch_does_not_resolve_unknown_version(assertion: di
     }
 
     assert build_enrichment_report(assertion, sbom, known_good)["matchStatus"] == "unmatched"
+
+
+def test_health_monitor_matches_when_lifecycle_is_in_sbom(
+    lifecycle_health_monitor_assertion: dict,
+) -> None:
+    assert validate_assertion(lifecycle_health_monitor_assertion) == []
+    sbom = {
+        "spdxVersion": "SPDX-2.3",
+        "packages": [
+            {
+                "SPDXID": "SPDXRef-score-lifecycle-unknown",
+                "name": "score_lifecycle",
+                "versionInfo": "unknown",
+                "externalRefs": [
+                    {
+                        "referenceType": "purl",
+                        "referenceLocator": "pkg:github/eclipse-score/score_lifecycle@unknown",
+                    }
+                ],
+            }
+        ],
+    }
+    known_good = json.loads((REPOSITORY_ROOT / "known_good.json").read_text(encoding="utf-8"))
+
+    report = build_enrichment_report(lifecycle_health_monitor_assertion, sbom, known_good)
+
+    assert report["matchStatus"] == "matched"
+    assert report["bindingEvidence"]["strategy"] == "score-known-good"
+    assert report["bindingEvidence"]["module"] == "score_lifecycle"
+    assert report["bindingEvidence"]["hash"] == lifecycle_health_monitor_assertion["subject"]["version"]
+    assert report["safetyAssessment"] == {
+        "source": "assertion",
+        "safetyRelevance": "safety-related",
+        "classification": "ASIL-B",
+        "assertionStatus": "draft",
+        "reviewer": None,
+    }
+
+
+def test_checked_in_health_monitor_pilot_fails_closed_when_lifecycle_is_absent(
+    lifecycle_health_monitor_assertion: dict,
+) -> None:
+    pilot_root = SRAC_ROOT / "pilot" / "lifecycle-health-monitor"
+    assertion_path = SRAC_ROOT / "examples" / "lifecycle-health-monitor.srac.json"
+    sbom_path = SRAC_ROOT / "pilot" / "persistency-kvs" / "input" / "reference-integration.spdx.json"
+    known_good_path = REPOSITORY_ROOT / "known_good.json"
+    report_path = pilot_root / "output" / "current-product.srac-report.json"
+    checksum_path = pilot_root / "output" / "current-product.srac-report.sha256"
+    provenance = json.loads((pilot_root / "provenance.json").read_text(encoding="utf-8"))
+    expected_report = json.loads(report_path.read_text(encoding="utf-8"))
+    integrity = {
+        "algorithm": "SHA-256",
+        "assertionSha256": _sha256(assertion_path),
+        "sbomSha256": _sha256(sbom_path),
+        "knownGoodSha256": _sha256(known_good_path),
+    }
+
+    report = build_enrichment_report(
+        lifecycle_health_monitor_assertion,
+        json.loads(sbom_path.read_text(encoding="utf-8")),
+        json.loads(known_good_path.read_text(encoding="utf-8")),
+        integrity,
+    )
+
+    assert report == expected_report
+    assert validate_report(report) == []
+    assert report["matchStatus"] == "unmatched"
+    assert report["matchedComponents"] == []
+    assert checksum_path.read_text(encoding="utf-8") == f"{_sha256(report_path)}  {report_path.name}\n"
+    assert provenance["integrity"] == {
+        "assertionSha256": _sha256(assertion_path),
+        "sbomSha256": _sha256(sbom_path),
+        "knownGoodSha256": _sha256(known_good_path),
+        "reportSha256": _sha256(report_path),
+    }
 
 
 def test_checked_in_persistency_pilot_matches_real_sbom(assertion: dict) -> None:

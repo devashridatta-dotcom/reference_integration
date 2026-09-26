@@ -35,8 +35,13 @@ score_py_pytest(
     name = "srac_tests",
     srcs = glob(["tests/**/*.py"]),
     data = [
+        "examples/lifecycle-health-monitor.srac.json",
         "examples/persistency-kvs.srac.json",
         "examples/synthetic-safety-related.srac.json",
+        "pilot/lifecycle-health-monitor/output/current-product.srac-report.json",
+        "pilot/lifecycle-health-monitor/output/current-product.srac-report.sha256",
+        "pilot/lifecycle-health-monitor/provenance.json",
+        "pilot/lifecycle-health-monitor/safety-assessment-draft.md",
         "pilot/persistency-kvs/evidence-metrics.json",
         "pilot/persistency-kvs/input/reference-integration.spdx.json",
         "pilot/persistency-kvs/output/persistency-kvs.srac-report.json",
@@ -52,8 +57,13 @@ score_py_pytest(
 )
 
 exports_files([
+    "examples/lifecycle-health-monitor.srac.json",
     "examples/persistency-kvs.srac.json",
     "examples/synthetic-safety-related.srac.json",
+    "pilot/lifecycle-health-monitor/output/current-product.srac-report.json",
+    "pilot/lifecycle-health-monitor/output/current-product.srac-report.sha256",
+    "pilot/lifecycle-health-monitor/provenance.json",
+    "pilot/lifecycle-health-monitor/safety-assessment-draft.md",
     "pilot/persistency-kvs/evidence-metrics.json",
     "pilot/persistency-kvs/input/reference-integration.spdx.json",
     "pilot/persistency-kvs/output/persistency-kvs.srac-report.json",

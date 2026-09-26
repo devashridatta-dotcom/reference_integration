@@ -22,6 +22,7 @@ component owner and safety reviewer provide a decision.
 - `schema/srac.schema.json`: draft JSON Schema for the minimum profile.
 - `schema/srac-report.schema.json`: draft JSON Schema for the generated enrichment report.
 - `examples/persistency-kvs.srac.json`: non-authoritative KVS example.
+- `examples/lifecycle-health-monitor.srac.json`: draft transcription of the pinned Health Monitor's public ASIL-B metadata.
 - `examples/synthetic-safety-related.srac.json`: wholly synthetic, illustrative example showing a populated
   `safety-related` / `ASIL-B` / `reviewed` assertion and all seven impact-analysis workflow steps. It is not a claim about any
   real component or product.
@@ -30,6 +31,8 @@ component owner and safety reviewer provide a decision.
 - `mappings/`: proposed SPDX 2.3 and CycloneDX 1.6 carrier mappings.
 - `pilot/persistency-kvs/`: real official SBOM input, provenance, reproducible commands, enrichment output and an
   unapproved component-classification evidence draft.
+- `pilot/lifecycle-health-monitor/`: second real-component pilot demonstrating fail-closed behavior because the current
+  official product SBOM does not contain Lifecycle, plus the evidence gaps that must be resolved before approval.
 - `tests/`: validation and matching tests.
 
 ## Run the tests
